@@ -8,24 +8,24 @@ namespace Document_Analyizer_AI
 {
     public class GeminiResponse
     {
-        public Candidate[] candidates { get; set; }
+        public Candidate[]? Candidates { get; set; }
 
         public class Candidate
         {
-            public Content content { get; set; }
-            public string finishReason { get; set; }
-            public double avgLogprobs { get; set; }
+            public Content? Content { get; set; }
+            public string? FinishReason { get; set; }
+            public double? AvgLogprobs { get; set; }
         }
 
         public class Content
         {
-            public Part[] parts { get; set; }
-            public string role { get; set; }
+            public Part[] Parts { get; set; } = [];
+            public string Role { get; set; } = "";
         }
 
         public class Part
         {
-            public string text { get; set; }
+            public string Text { get; set; } = "";
         }
     }
 }

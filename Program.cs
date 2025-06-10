@@ -8,7 +8,7 @@ using System.Net.Http;
 using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
-using static Document_Analyizer_AI.SceneData;
+using Document_Analyizer_AI.Story;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Document_Analyizer_AI
@@ -78,7 +78,7 @@ namespace Document_Analyizer_AI
             string endpoint = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={apiKey}";
         
             string basePath = "Chapters/Chapter 1/";
-            SceneData.SceneData? lastChapter = null; // Initialize lastChapter to null for the first iteration
+            Story.SceneData? lastScene = null; // Initialize lastChapter to null for the first iteration
 
             for (int i = 1; i <= 4; i++)
             {
@@ -87,7 +87,7 @@ namespace Document_Analyizer_AI
                 Document sceneDoc = Document.Load(scenePath);
                     // build the prompt and check it
                     // Not entirely sure if json added to prompt is a good format, but it should kinda sorta work.
-                string prompt = PromptBuilder.BuildPrompt(lastChapter?.ToJson(), sceneDoc.Title + "\r\n\r\n" + sceneDoc.Contents);
+                string prompt = PromptBuilder.BuildPrompt(lastScene?.ToJson(), sceneDoc.Title + "\r\n\r\n" + sceneDoc.Contents);
                 AssertUtil.AssertNotNull(prompt, "Prompt should not be null or empty");
 
                 // Print the prompt to the console for debugging
@@ -124,7 +124,7 @@ namespace Document_Analyizer_AI
                 var content = new StringContent(json, Encoding.UTF8, "application/json"); // Create the HTTP content with the JSON body
 
                 HttpResponseMessage response = await CLIENT.PostAsync(endpoint, content); // Send the POST request to the Gemini API
-                string responseBody = await response.Content.ReadAsStringAsync(); // Read the response body as a string
+                string? responseBody = await response.Content.ReadAsStringAsync(); // Read the response body as a string
 
                 // Deserialize the outer response into a JObject
                 var outerJson = JObject.Parse(responseBody);
@@ -151,16 +151,16 @@ namespace Document_Analyizer_AI
                 Console.WriteLine(cleanedJson); // Print the response body to the console
 
                 // Now deserialize cleanedJson into ChapterAnalysis
-                SceneData.SceneData chapterAnalysis = new SceneData.SceneData(cleanedJson);
+                Story.SceneData chapterAnalysis = new(cleanedJson);
 
 
             
                 // Output the chapter analysis results to the console
                 // Could be encapsulated in a method, but for now, let's keep it simple
-                Console.WriteLine("Chapter Summary " + chapterAnalysis.summary); 
-                Console.WriteLine("New Characters: " + (chapterAnalysis.new_characters?.Count > 0 ? string.Join(", ", chapterAnalysis.new_characters.Select(c => c.name)) : "None"));
-                Console.WriteLine("Setting: " + chapterAnalysis.setting);
-                chapterAnalysis.themes?.ForEach(t => Console.WriteLine("Theme: " + t.name));
+                Console.WriteLine("Chapter Summary " + chapterAnalysis.Summary); 
+                Console.WriteLine("New Characters: " + (chapterAnalysis.NewCharacters?.Count > 0 ? string.Join(", ", chapterAnalysis.NewCharacters.Select(c => c.Name)) : "None"));
+                Console.WriteLine("Setting: " + chapterAnalysis.Setting);
+                chapterAnalysis.Themes?.ForEach(t => Console.WriteLine("Theme: " + t.Name));
 
                 string folderName = "ChapterResults"; // Folder to store the output files
                 Directory.CreateDirectory(folderName); // Ensure folder exists
@@ -171,7 +171,7 @@ namespace Document_Analyizer_AI
                 AssertUtil.AssertNotNull(chapterAnalysis.ToJson()); // don't think this can fail, but let's be safe
                 OutputWriter.WriteOutputToFile(chapterAnalysis.ToJson(), fullPath);
 
-                lastChapter = chapterAnalysis; // Update lastChapter for the next iteration
+                lastScene = chapterAnalysis; // Update lastChapter for the next iteration
             }
 
             

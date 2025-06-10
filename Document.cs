@@ -18,7 +18,7 @@ namespace Document_Analyizer_AI
                 if (!File.Exists(path))
                     throw new FileNotFoundException($"Document file not found: {path}");
 
-                Document document = new Document();
+                Document document = new();
                 document.Title = Path.GetFileNameWithoutExtension(path);
                 document.Title = SanitizeForFilename(document.Title);
                 document.Contents = File.ReadAllText(path);
